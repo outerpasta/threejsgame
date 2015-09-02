@@ -1,0 +1,21 @@
+{
+  "name": "jumper",
+  "version": "0.0.0",
+  "authors": [
+    "Alex Barry <abarry@playsino.com>"
+  ],
+  "license": "MIT",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "threejs": "*",
+    "THREE.TargetCamera": "https://github.com/squarefeet/THREE.TargetCamera.git",
+    "jQuery": "~2.1.4"
+  }
+}
