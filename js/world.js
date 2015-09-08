@@ -9,8 +9,10 @@ var World = Class.extend({
         // level 1
         loader.load( "blender/level1.json", function( geometry ) {
             var mesh = new THREE.Mesh( geometry, new THREE.MeshLambertMaterial({color: 0xFF0000}) );
-            mesh.scale.set( 30, 30, 30 );
+            mesh.scale.set( 100, 100, 100 );
+            mesh.receiveShadow = true;
             this.mesh.add(mesh);
+            this.mesh.receiveShadow = true;
         }.bind(this));
     },
     getObstacles: function () {

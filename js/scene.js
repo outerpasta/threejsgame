@@ -2,21 +2,46 @@ var BasicScene = Class.extend({
     // Class constructor
     init: function () {
         'use strict';
-        // Create a scene, a camera, a light and a WebGL renderer with Three.JS
+        // Create a scene
         this.scene = new THREE.Scene();
-        this.camera = new THREE.PerspectiveCamera(45, 1, 0.1, 10000);
-        this.scene.add(this.camera);
-        this.light = new THREE.PointLight();
-        this.light.position.set(-256, 256, -256);
-        this.scene.add(this.light);
-        this.renderer = new THREE.WebGLRenderer();
-        // Define the container for the renderer
-        this.container = jQuery('#container');
         // Create the user's character
         this.user = new Character({
             color: 0x7A43B6
         });
         this.scene.add(this.user.mesh);
+
+        //Camera
+        this.camera = new THREE.TargetCamera(45, 1, 0.1, 10000);
+        this.camera.addTarget({
+            name: 'chase',
+            targetObject: this.user.mesh,
+            cameraPosition: new THREE.Vector3( 0, 50, 300 ),
+//            cameraRotation: new THREE.Euler( -0.5, 0, 0 , "XYZ"),
+            stiffness: 0.9,
+            fixed: false
+
+        });
+        this.camera.setTarget( 'chase' );
+
+        this.scene.add(this.camera);
+//        this.user.mesh.add(this.camera);
+
+        //Light
+        this.light = new THREE.SpotLight();
+//        this.light.position.set(0, 300, 0);
+        this.light.castShadow = true;
+        this.light.shadowDarkness = 0.7;
+        this.light.shadowCameraVisible = true;
+        this.light.target = this.user.mesh;
+        this.scene.add(this.light);
+
+        this.renderer = new THREE.WebGLRenderer();
+        this.renderer.shadowMapType = THREE.PCFSoftShadowMap; // options are THREE.BasicShadowMap | THREE.PCFShadowMap | THREE.PCFSoftShadowMap
+        this.renderer.shadowMapEnabled = true;
+
+        // Define the container for the renderer
+        this.container = jQuery('#container');
+
         // Create the "world" : a 3D representation of the place we'll be putting our character in
         this.world = new World({
             color: 0xF5F5F5
@@ -27,21 +52,20 @@ var BasicScene = Class.extend({
         // Insert the renderer in the container
         this.container.prepend(this.renderer.domElement);
         // Set the camera to look at our user's character
-        this.setFocus(this.user.mesh);
+//        this.setFocus(this.user.mesh);
         // Start the events handlers
         this.setControls();
-
-        //
+    },
+    // Event handlers
+    setControls: function () {
+        'use strict';
         this.joystick = new VirtualJoystick({
             container	     : document.getElementById('container'),
             mouseSupport	 : true,
             limitStickTravel : true,
             stickRadius      : 100
         });
-    },
-    // Event handlers
-    setControls: function () {
-        'use strict';
+
         // On resize
         jQuery(window).resize(function () {
             // Redefine the size of the renderer
@@ -60,21 +84,17 @@ var BasicScene = Class.extend({
         this.camera.aspect = w / h;
         this.camera.updateProjectionMatrix();
     },
-    // Updating the camera to follow and look at a given Object3D / Mesh
-    setFocus: function (object) {
-        'use strict';
-        this.camera.position.set(object.position.x, object.position.y + 128, object.position.z - 256);
-        this.camera.lookAt(object.position);
-    },
     // Update and draw the scene
     frame: function () {
         'use strict';
-        //
-        this.user.setDirection(this.joystick.deltaX(), this.joystick.deltaY());
+
         // Run a new step of the user's motions
-        this.user.motion();
+        this.user.update(this.joystick.deltaX(), this.joystick.deltaY());
+        this.light.position.set(this.user.mesh.position.x, 2000, this.user.mesh.position.z);
+
         // Set the camera to look at our user's character
-        this.setFocus(this.user.mesh);
+        this.camera.update();
+
         // And draw !
         this.renderer.render(this.scene, this.camera);
     }
