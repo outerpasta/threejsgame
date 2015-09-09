@@ -100,7 +100,7 @@ var Character = Class.extend({
             this.m.velocity.z = this.m.forward.z;
         }
 
-        this.collision();
+//        this.collision();
 
         this.m.rotation.add( this.m.spinning );
         this.m.position.add( this.m.velocity );
