@@ -15,9 +15,9 @@ var BasicScene = Class.extend({
         this.camera.addTarget({
             name: 'chase',
             targetObject: this.user.mesh,
-            cameraPosition: new THREE.Vector3( 0, 50, 300 ),
-//            cameraRotation: new THREE.Euler( -0.5, 0, 0 , "XYZ"),
-            stiffness: 0.2,
+            cameraPosition: new THREE.Vector3( 0, 100, 600 ),
+            cameraRotation: new THREE.Euler( -0.4, 0, 0 , "XYZ"),
+            stiffness: 0.04,
             fixed: false
 
         });
@@ -27,12 +27,13 @@ var BasicScene = Class.extend({
             cameraPosition: new THREE.Vector3( 0, 800, 0 ),
             cameraRotation: new THREE.Euler( 0, 0, 0 , "XYZ"),
             matchRotation: false,
-            stiffness: 0.2,
+            stiffness: 0.02,
             fixed: false
 
         });
 
 
+//        this.camera.setTarget( 'birdseye' );
         this.camera.setTarget( 'chase' );
 
         this.scene.add(this.camera);

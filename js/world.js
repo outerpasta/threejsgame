@@ -12,6 +12,7 @@ var World = Class.extend({
             mesh.scale.set( 200, 200, 200 );
             mesh.receiveShadow = true;
             mesh.position.y -= 200;
+            mesh.name = 'ground'
             this.mesh.add(mesh);
             this.mesh.receiveShadow = true;
         }.bind(this));

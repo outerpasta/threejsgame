@@ -19,11 +19,11 @@ var Character = Class.extend({
 
         // Set the vector of the current motion
         this.m = {
-
             forward      : new THREE.Vector3(), //necessary?
             displacement : new THREE.Vector3(), //necessary?
             angles       : new THREE.Vector2(), //necessary?
             damping      : 0.9,
+            gravity      : 1,
 
             airborne : false,
             position : new THREE.Vector3(),
@@ -35,16 +35,16 @@ var Character = Class.extend({
 
         // Set the rays : one vector for every potential direction
         this.rays = [
-            new THREE.Vector3(0, 0, 1),  // up
-            new THREE.Vector3(1, 0, 1),  // up-left
+            new THREE.Vector3(0, 0, 1),  // forward
+            new THREE.Vector3(1, 0, 1),  // forward-left
             new THREE.Vector3(1, 0, 0),  // left
-            new THREE.Vector3(1, 0, -1), // down-left
-            new THREE.Vector3(0, 0, -1), // down
+            new THREE.Vector3(1, 0, -1), // back-left
+            new THREE.Vector3(0, 0, -1), // back
             new THREE.Vector3(-1, 0, -1),//
             new THREE.Vector3(-1, 0, 0),
             new THREE.Vector3(-1, 0, 1),
 
-            new THREE.Vector3(0, -1, 0),
+            new THREE.Vector3(0, -1, 0) // down
         ];
 
         // And the "RayCaster", able to test for intersections
@@ -57,18 +57,18 @@ var Character = Class.extend({
 
     },
     collide: function (dir) {
-        this.m.velocity = new THREE.Vector3(
-            dir.x - dir.x * 2,
-            dir.y - dir.y * 2,
-            dir.z - dir.z * 2
-        );
+//        this.m.velocity = new THREE.Vector3(
+//            dir.x - dir.x * 2,
+//            dir.y - dir.y * 2,
+//            dir.z - dir.z * 2
+//        );
     },
     collision: function () {
         'use strict';
         var collisions,
-            // Maximum distance from the origin before we consider collision
+        // Maximum distance from the origin before we consider collision
             distance = 100,
-            // Get the obstacles array from our world
+        // Get the obstacles array from our world
             obstacles = basicScene.world.getObstacles();
         // For each ray
         for (var i = 0; i < this.rays.length; i += 1) {
@@ -77,34 +77,25 @@ var Character = Class.extend({
             // Test if we intersect with any obstacle mesh
             collisions = this.caster.intersectObjects(obstacles);
             // And disable that direction if we do
-            if (collisions.length > 0 && collisions[0].distance <= distance) {
-                // We reset the raycaster to this direction
-                this.caster.set(this.mesh.position, this.rays[i]);
-                // Test if we intersect with any obstacle mesh
-                collisions = this.caster.intersectObjects(obstacles);
-                // And disable that direction if we do
-                if (collisions.length > 0) {
-//                    for (var ii; ii < collisions.length; ii += 1 ) {
-                    this.collide(this.rays[i]);
-//                    }
-
-//                //Yep, this.rays[i] gives us : 0 => forward, 1 => left, 2 => back, 3 => right
-//                console.log(JSON.stringify(collisions));return true;
-//                if ((i === 0 || i === 2 ) && this.m.velocity.z > 0) {
-//                    this.m.velocity.setZ(0);
-//                    this.m.velocity.setX(0);
-//                    this.m.velocity.z -= this.m.velocity.z * 2;
-//                }
-//                if ((i === 1 || i === 3 ) && this.m.velocity.x > 0) {
-//                    this.m.velocity.setX(0);
-//                    this.m.velocity.setZ(0);
-//                    this.m.velocity.x -= this.m.velocity.x * 2;
-//                }
+            for (var ii = 0;ii < collisions.length;ii += 1) {
+                if (collisions[ii].distance <= distance) {
+                    if (i == 8) {
+                        if (collisions[ii].distance < distance - 2) {
+                            var inc = collisions[ii].distance - distance;
+                            console.log(inc);
+                            this.m.velocity.setY(distance - collisions[ii].distance);
+                        } else {
+                            this.m.velocity.setY(0);
+                        }
+                    }else {
+                        this.m.velocity.setX(this.rays[i].x - this.rays[i].x * 2);
+                        this.m.velocity.setZ(this.rays[i].z - this.rays[i].z * 2);
+                    }
                 }
             }
 
-
         }
+
     },
     update: function (x, y) {
         'use strict';
@@ -123,13 +114,19 @@ var Character = Class.extend({
             Math.cos( this.m.rotation.x )
         );
         this.m.forward.multiplyScalar( y );
+//        if (this.m.airborne) this.m.forward.y -= 1;// Gravity
+        this.m.forward.y -= this.m.gravity;// Gravity
 
         if( Math.abs( this.m.forward.x ) >= Math.abs( this.m.velocity.x ) ) {
             this.m.velocity.x = this.m.forward.x;
         }
+        if( Math.abs( this.m.forward.y ) >= Math.abs( this.m.velocity.y ) ) {
+            this.m.velocity.y = this.m.forward.y;
+        }
         if( Math.abs( this.m.forward.z ) >= Math.abs( this.m.velocity.z ) ) {
             this.m.velocity.z = this.m.forward.z;
         }
+
 
         this.collision();
 
