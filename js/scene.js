@@ -17,10 +17,22 @@ var BasicScene = Class.extend({
             targetObject: this.user.mesh,
             cameraPosition: new THREE.Vector3( 0, 50, 300 ),
 //            cameraRotation: new THREE.Euler( -0.5, 0, 0 , "XYZ"),
-            stiffness: 0.9,
+            stiffness: 0.2,
             fixed: false
 
         });
+        this.camera.addTarget({
+            name: 'birdseye',
+            targetObject: this.user.mesh,
+            cameraPosition: new THREE.Vector3( 0, 800, 0 ),
+            cameraRotation: new THREE.Euler( 0, 0, 0 , "XYZ"),
+            matchRotation: false,
+            stiffness: 0.2,
+            fixed: false
+
+        });
+
+
         this.camera.setTarget( 'chase' );
 
         this.scene.add(this.camera);
@@ -31,7 +43,7 @@ var BasicScene = Class.extend({
 //        this.light.position.set(0, 300, 0);
         this.light.castShadow = true;
         this.light.shadowDarkness = 0.7;
-        this.light.shadowCameraVisible = true;
+//        this.light.shadowCameraVisible = true;
         this.light.target = this.user.mesh;
         this.scene.add(this.light);
 
@@ -55,6 +67,18 @@ var BasicScene = Class.extend({
 //        this.setFocus(this.user.mesh);
         // Start the events handlers
         this.setControls();
+
+        this.debug();
+    },
+    debug: function () {
+        for (var i = 0; i < this.user.rays.length; i += 1) {
+            var ray = new THREE.ArrowHelper( this.user.rays[i], this.user.mesh.position, 100, 0xffff00 );
+            this.user.mesh.add(ray);
+        }
+
+
+        var dir = new THREE.Vector3( 1, 0, 0 );
+        var origin = new THREE.Vector3( 0, 0, 0 );
     },
     // Event handlers
     setControls: function () {

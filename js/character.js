@@ -5,15 +5,17 @@ var Character = Class.extend({
 
         // Set the character modelisation object
         this.mesh = new THREE.Object3D();
-        this.mesh.position.y = 48;
 
         // Set and add its body
         this.body = new THREE.Mesh(
-            new THREE.SphereGeometry(32, 16, 16),
+            new THREE.SphereGeometry(16, 8, 8),
             new THREE.MeshLambertMaterial(args)
         );
         this.body.castShadow = true;
+//        this.body.position.y += 48;
+
         this.mesh.add(this.body);
+//        this.mesh.position.y = 48;
 
         // Set the vector of the current motion
         this.m = {
@@ -21,7 +23,7 @@ var Character = Class.extend({
             forward      : new THREE.Vector3(), //necessary?
             displacement : new THREE.Vector3(), //necessary?
             angles       : new THREE.Vector2(), //necessary?
-            damping      : 0.93,
+            damping      : 0.9,
 
             airborne : false,
             position : new THREE.Vector3(),
@@ -40,39 +42,68 @@ var Character = Class.extend({
             new THREE.Vector3(0, 0, -1), // down
             new THREE.Vector3(-1, 0, -1),//
             new THREE.Vector3(-1, 0, 0),
-            new THREE.Vector3(-1, 0, 1)
+            new THREE.Vector3(-1, 0, 1),
+
+            new THREE.Vector3(0, -1, 0),
         ];
+
         // And the "RayCaster", able to test for intersections
         this.caster = new THREE.Raycaster();
+
+
+//        this.projector = new THREE.Projector();
+//        this.mesh.add(this.projector);
+
+
+    },
+    collide: function (dir) {
+        this.m.velocity = new THREE.Vector3(
+            dir.x - dir.x * 2,
+            dir.y - dir.y * 2,
+            dir.z - dir.z * 2
+        );
     },
     collision: function () {
         'use strict';
-        var collisions, i,
+        var collisions,
             // Maximum distance from the origin before we consider collision
-            distance = 32,
+            distance = 100,
             // Get the obstacles array from our world
             obstacles = basicScene.world.getObstacles();
         // For each ray
-        for (i = 0; i < this.rays.length; i += 1) {
+        for (var i = 0; i < this.rays.length; i += 1) {
             // We reset the raycaster to this direction
             this.caster.set(this.mesh.position, this.rays[i]);
             // Test if we intersect with any obstacle mesh
             collisions = this.caster.intersectObjects(obstacles);
             // And disable that direction if we do
-            if (collisions.length > 0) {
-                // Yep, this.rays[i] gives us : 0 => up, 1 => up-left, 2 => left, ...
-                if ((i === 0 || i === 1 || i === 7) && this.m.velocity.z > 0) {
-                    this.m.velocity.setZ(0);
-                } else if ((i === 3 || i === 4 || i === 5) && this.m.velocity.z < 0) {
-                    this.m.velocity.setZ(0);
-                }
+            if (collisions.length > 0 && collisions[0].distance <= distance) {
+                // We reset the raycaster to this direction
+                this.caster.set(this.mesh.position, this.rays[i]);
+                // Test if we intersect with any obstacle mesh
+                collisions = this.caster.intersectObjects(obstacles);
+                // And disable that direction if we do
+                if (collisions.length > 0) {
+//                    for (var ii; ii < collisions.length; ii += 1 ) {
+                    this.collide(this.rays[i]);
+//                    }
 
-                if ((i === 1 || i === 2 || i === 3) && this.m.velocity.x > 0) {
-                    this.m.velocity.setX(0);
-                } else if ((i === 5 || i === 6 || i === 7) && this.m.velocity.x < 0) {
-                    this.m.velocity.setX(0);
+//                //Yep, this.rays[i] gives us : 0 => forward, 1 => left, 2 => back, 3 => right
+//                console.log(JSON.stringify(collisions));return true;
+//                if ((i === 0 || i === 2 ) && this.m.velocity.z > 0) {
+//                    this.m.velocity.setZ(0);
+//                    this.m.velocity.setX(0);
+//                    this.m.velocity.z -= this.m.velocity.z * 2;
+//                }
+//                if ((i === 1 || i === 3 ) && this.m.velocity.x > 0) {
+//                    this.m.velocity.setX(0);
+//                    this.m.velocity.setZ(0);
+//                    this.m.velocity.x -= this.m.velocity.x * 2;
+//                }
                 }
             }
+
+
         }
     },
     update: function (x, y) {
@@ -100,7 +131,7 @@ var Character = Class.extend({
             this.m.velocity.z = this.m.forward.z;
         }
 
-//        this.collision();
+        this.collision();
 
         this.m.rotation.add( this.m.spinning );
         this.m.position.add( this.m.velocity );
