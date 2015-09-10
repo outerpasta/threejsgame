@@ -19,11 +19,14 @@ var Character = Class.extend({
 
         // Set the vector of the current motion
         this.m = {
+            // Maximum distance from the origin before we consider collision
+            rayDistance: 100,
+
             forward      : new THREE.Vector3(), //necessary?
             displacement : new THREE.Vector3(), //necessary?
             angles       : new THREE.Vector2(), //necessary?
             damping      : 0.9,
-            gravity      : 1,
+            gravity      : 6,
 
             airborne : false,
             position : new THREE.Vector3(),
@@ -66,8 +69,6 @@ var Character = Class.extend({
     collision: function () {
         'use strict';
         var collisions,
-        // Maximum distance from the origin before we consider collision
-            distance = 100,
         // Get the obstacles array from our world
             obstacles = basicScene.world.getObstacles();
         // For each ray
@@ -78,14 +79,18 @@ var Character = Class.extend({
             collisions = this.caster.intersectObjects(obstacles);
             // And disable that direction if we do
             for (var ii = 0;ii < collisions.length;ii += 1) {
-                if (collisions[ii].distance <= distance) {
+                if (collisions[ii].distance <= this.m.rayDistance) {
                     if (i == 8) {
-                        if (collisions[ii].distance < distance - 2) {
-                            var inc = collisions[ii].distance - distance;
-                            console.log(inc);
-                            this.m.velocity.setY(distance - collisions[ii].distance);
+                        if (collisions[ii].distance < this.m.rayDistance - 2) {
+//                            this.m.velocity.setY(distance - collisions[ii].distance);
+                            this.m.velocity.setY(Math.round(this.m.rayDistance - collisions[ii].distance));
+//                            this.m.velocity.setY(+(distance - collisions[ii].distance).toFixed(2));
+                            if (this.m.velocity.y > 10) console.log(this.m.velocity.y);
                         } else {
                             this.m.velocity.setY(0);
+                        }
+                        if (this.m.velocity.y == 6 || this.m.velocity.y == 5 || this.m.velocity.y == 4) {
+                            this.m.velocity.y -= 1;
                         }
                     }else {
                         this.m.velocity.setX(this.rays[i].x - this.rays[i].x * 2);
@@ -127,6 +132,8 @@ var Character = Class.extend({
             this.m.velocity.z = this.m.forward.z;
         }
 
+//        if (this.m.velocity.y < 1) {this.m.velocity.y -= this.m.gravity}
+//        console.log(this.m.velocity);
 
         this.collision();
 
