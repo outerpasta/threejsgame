@@ -12,10 +12,18 @@ var World = Class.extend({
             mesh.scale.set( 200, 200, 200 );
             mesh.receiveShadow = true;
             mesh.position.y -= 200;
-            mesh.name = 'ground'
+            mesh.name = 'ground';
             this.mesh.add(mesh);
             this.mesh.receiveShadow = true;
         }.bind(this));
+
+        //Ceiling
+        var ceil = new THREE.Mesh(
+                new THREE.BoxGeometry(5000, 1, 5000),
+                new THREE.MeshBasicMaterial({wireframe: true})
+        );
+        ceil.position.y += 500;
+//        this.mesh.add(ceil);
     },
     getObstacles: function () {
         'use strict';

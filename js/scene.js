@@ -17,7 +17,7 @@ var BasicScene = Class.extend({
             targetObject: this.user.mesh,
             cameraPosition: new THREE.Vector3( 0, 100, 600 ),
             cameraRotation: new THREE.Euler( -0.4, 0, 0 , "XYZ"),
-            stiffness: 0.04,
+            stiffness: 1,
             fixed: false
 
         });
@@ -73,22 +73,49 @@ var BasicScene = Class.extend({
     },
     debug: function () {
         for (var i = 0; i < this.user.rays.length; i += 1) {
-            var ray = new THREE.ArrowHelper( this.user.rays[i], this.user.mesh.position, 100, 0xffff00 );
+            var ray = new THREE.ArrowHelper( this.user.rays[i], this.user.mesh.position, this.user.m.rayDistance, 0xffff00 );
             this.user.mesh.add(ray);
         }
-
-
-        var dir = new THREE.Vector3( 1, 0, 0 );
-        var origin = new THREE.Vector3( 0, 0, 0 );
     },
     // Event handlers
     setControls: function () {
         'use strict';
         this.joystick = new VirtualJoystick({
             container	     : document.getElementById('container'),
+            strokeStyle      : 'cyan',
             mouseSupport	 : true,
             limitStickTravel : true,
             stickRadius      : 100
+        });
+        this.joystick.addEventListener('touchStartValidation', function(event){
+            var touch	= event.changedTouches[0];
+            return touch.pageX < window.innerWidth/2
+        });
+
+        this.button = new VirtualJoystick({
+            container	     : document.getElementById('container'),
+            strokeStyle      : 'orange',
+            mouseSupport	 : true,
+            limitStickTravel : true,
+            stickRadius      : 0
+        });
+        this.button.addEventListener('touchStartValidation', function(event){
+            var touch	= event.changedTouches[0];
+            return touch.pageX >= window.innerWidth/2
+        });
+
+        // Jumping
+        var user = this.user;
+        this.button.addEventListener('touchStart', function(){
+            user.m.jump = true;
+        });
+        jQuery(window).keypress(function(evt) {
+//            var key = getChar(event || window.event);
+//            if (!key) return // special key
+            if (evt.which == 32) user.m.jump = true;
+//            if (evt.which == 38)
+//            user.m.velocity.y += 10;
+//            console.log(user.m.velocity.y);
         });
 
         // On resize
