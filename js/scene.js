@@ -17,7 +17,7 @@ var BasicScene = Class.extend({
             targetObject: this.user.mesh,
             cameraPosition: new THREE.Vector3( 0, 100, 600 ),
             cameraRotation: new THREE.Euler( -0.4, 0, 0 , "XYZ"),
-            stiffness: 1,
+            stiffness: 0.1,
             fixed: false
 
         });
