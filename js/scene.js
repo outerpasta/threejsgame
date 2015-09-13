@@ -109,15 +109,11 @@ var BasicScene = Class.extend({
         // Jumping
         var user = this.user;
         this.button.addEventListener('touchStart', function(){
-            user.m.jump = true;
+            if (!user.m.airborne) user.m.jump = true;
         });
         jQuery(window).keypress(function(evt) {
-//            var key = getChar(event || window.event);
-//            if (!key) return // special key
-            if (evt.which == 32) user.m.jump = true;
-//            if (evt.which == 38)
-//            user.m.velocity.y += 10;
-//            console.log(user.m.velocity.y);
+            if (evt.which == 32 &&!user.m.airborne) user.m.jump = true;
+
         });
 
         // On resize

@@ -30,7 +30,7 @@ var Character = Class.extend({
             jump         : false,
             jumpVelocity : 0,
             jumpDelta    : 0,
-            jumpPower    : 5,
+            jumpPower    : 40,  // add for gravity
 
             airborne : true,
             position : new THREE.Vector3(),
@@ -63,12 +63,6 @@ var Character = Class.extend({
 
 
     },
-//    jump: function () {
-//        this.m.position.y += 200;
-//        console.log('jump')
-//    },
-
-
     collision: function (velocity) {
         'use strict';
         var collisions,
@@ -119,23 +113,29 @@ var Character = Class.extend({
 
         if (this.m.airborne) this.m.forward.y += this.m.gravity;// Gravity
 
-        if (!this.m.airborne) this.m.jumpVelocity = 0;
-
-
-//        /////////////////////////////////Jump Logic
-//        if (this.m.jump == true && this.m.airborne == false) {
-//            this.m.position.y += 1;
-//            this.m.jumpDelta = this.m.jumpPower;
-//            this.jumpStep();
-//            this.m.airborne = true;
-//            this.m.jump     = false;
-//        } else if (this.m.airborne) {
-//            this.jumpStep();
+//        if (!this.m.airborne) {
+//            this.m.jumpVelocity = 0;
+//            this.m.jumpDelta = 0;
 //        }
-//        /////////////////////////////////
+
+
+        //Jump Logic
+        if (this.m.jump == true && this.m.airborne == false) {
+            this.m.jump = false;
+            this.m.jumpVelocity = this.m.jumpPower;
+            this.m.position.y += this.m.jumpVelocity;
+            this.jumpStep();
+        } else if (this.m.airborne) {
+            this.jumpStep();
+        }
+        this.m.forward.y += this.m.jumpVelocity;
+
 
         this.m.airborne = true;
         this.collision(this.m.forward);
+
+//        console.log('jump', this.m.jump);
+//        console.log('jumpVelocity', this.m.jumpVelocity);
 
         this.m.velocity.y = this.m.forward.y; // if( Math.abs( this.m.forward.y ) >= Math.abs( this.m.velocity.y ) ) this.m.velocity.y = this.m.forward.y;
         if( Math.abs( this.m.forward.x ) >= Math.abs( this.m.velocity.x ) ) this.m.velocity.x = this.m.forward.x;
@@ -151,18 +151,7 @@ var Character = Class.extend({
         this.mesh.rotation.y = this.m.rotation.x;
     },
     jumpStep: function () {
-
-//        if (!this.m.jumpDelta < this.m.gravity) this.m.jumpDelta -= .01;
-
-        this.m.jumpDelta -= .1;
-//        this.m.jumpVelocity += this.m.jumpDelta;
-        if (this.m.jumpDelta) this.m.jumpVelocity = this.m.jumpDelta;
-
-
-//        console.log(!this.m.jumpDelta < this.m.gravity);
-//        console.log(this.m.jumpDelta,this.m.gravity);
-//        console.log('jumpDelta', this.m.jumpDelta);
-//        console.log('jumpVelocity', this.m.jumpVelocity);
-//        console.log('velocity.y', this.m.velocity.y);
+//        if (!this.m.jumpDelta == 0) this.m.jumpDelta -= .1;
+        this.m.jumpVelocity -= 1;
     }
 });
