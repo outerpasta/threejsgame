@@ -26,11 +26,11 @@ var Character = Class.extend({
             displacement : new THREE.Vector3(), //necessary?
             angles       : new THREE.Vector2(), //necessary?
             damping      : 0.9,
-            gravity      : -4,
+            gravity      : -10,
             jump         : false,
             jumpVelocity : 0,
             jumpDelta    : 0,
-            jumpPower    : 8,
+            jumpPower    : 5,
 
             airborne : true,
             position : new THREE.Vector3(),
@@ -41,19 +41,18 @@ var Character = Class.extend({
         this.m.position.copy( this.mesh.position );
 
         // Set the rays : one vector for every potential direction
-        this.rays = [
-            new THREE.Vector3(0, 0, 1),  // forward
-            new THREE.Vector3(1, 0, 1),  // forward-left
-            new THREE.Vector3(1, 0, 0),  // left
-            new THREE.Vector3(1, 0, -1), // back-left
-            new THREE.Vector3(0, 0, -1), // back
-            new THREE.Vector3(-1, 0, -1),//
-            new THREE.Vector3(-1, 0, 0),
-            new THREE.Vector3(-1, 0, 1),
-
-            new THREE.Vector3(0, -1, 0),// down
-            new THREE.Vector3(0, 1, 0)  // up
-        ];
+        this.rays = {
+            'back'          : new THREE.Vector3(0, 0, 1),
+            'back-right'    : new THREE.Vector3(1, 0, 1),
+            'right'         : new THREE.Vector3(1, 0, 0),
+            'forward-right' : new THREE.Vector3(1, 0, -1),
+            'forward'       : new THREE.Vector3(0, 0, -1),
+            'forward-left'  : new THREE.Vector3(-1, 0, -1),
+            'left'          : new THREE.Vector3(-1, 0, 0),
+            'back-left'     : new THREE.Vector3(-1, 0, 1),
+            'up'            : new THREE.Vector3(0, -1, 0),
+            'down'          : new THREE.Vector3(0, 1, 0)
+        };
 
         // And the "RayCaster", able to test for intersections
         this.caster = new THREE.Raycaster();
@@ -68,53 +67,37 @@ var Character = Class.extend({
 //        this.m.position.y += 200;
 //        console.log('jump')
 //    },
-    collision: function () {
+
+
+    collision: function (velocity) {
         'use strict';
         var collisions,
             obstacles = basicScene.world.getObstacles();
 
-        this.m.airborne = true;
-        for (var i = 0; i < this.rays.length; i += 1) {
-            this.caster.set(this.mesh.position, this.rays[i]);
-            collisions = this.caster.intersectObjects(obstacles);
-            for (var ii = 0;ii < collisions.length;ii += 1) {
-                if (collisions[ii].distance <= this.m.rayDistance) {
-
-                    // Down
-                    if (i == 8) {
-//                        if (this.m.jump) {
-////                            this.m.velocity.y += 1;
-//                            break;
-//                        }
-                        this.m.jumpVelocity = 0;
-//                        this.m.airborne = false;
-//                        this.m.jump = false;
-                        if (collisions[ii].distance < this.m.rayDistance ) {
-                            this.m.airborne = false;
-//                            this.m.velocity.setY(distance - collisions[ii].distance);
-                            this.m.velocity.setY(Math.round(this.m.rayDistance - collisions[ii].distance));
-                            console.log(this.m.velocity.y);
-//                            this.m.velocity.setY(+(distance - collisions[ii].distance).toFixed(2));
-                            if (this.m.velocity.y > 10) console.log(this.m.velocity.y);
-                        } else {
-                            this.m.velocity.setY(0);
-                            this.m.airborne = false;
-                        }
-
-                        if (this.m.velocity.y > 3) {
-                            this.m.velocity.y -= 1;
-                        }
-
-
-                    // Other Directions
-                    }else {
-                        this.m.velocity.setX(this.rays[i].x - this.rays[i].x * 2);
-                        this.m.velocity.setY(this.rays[i].y - this.rays[i].y * 2);
-                        this.m.velocity.setZ(this.rays[i].z - this.rays[i].z * 2);
-                    }
+        for(var key in this.rays) {
+            if (this.rays.hasOwnProperty(key)) {
+                this.caster.set(this.mesh.position, this.rays[key]);
+                collisions = this.caster.intersectObjects(obstacles);
+                if (collisions.length > 0) this.collide(this.rays[key], collisions[0], velocity);
+            }
+        }
+    },
+    collide: function (ray, collision, velocity) {
+        if (collision.distance <= this.m.rayDistance) {
+            if (ray.x) {velocity.setX(ray.x - ray.x * 2);}
+            if (ray.y) {
+                if (ray.y > 0) {                        // up
+                    velocity.setY(ray.y - ray.y * 2);
+                } else {                                // down
+                    this.m.airborne = false;
+                    if (collision.distance < this.m.rayDistance - 1) {
+                        if (collision.distance < this.m.rayDistance - 20) {
+                            velocity.setY(+((this.m.rayDistance - collision.distance)/10).toFixed(2));
+                        } else {velocity.setY(0);}
+                    } else {velocity.setY(0);}
                 }
             }
-
+            if (ray.z) {velocity.setZ(ray.z - ray.z * 2);}
         }
 
     },
@@ -123,50 +106,43 @@ var Character = Class.extend({
         // invert joystick direction, and modulate speed
         x = (x - (x * 2))/3000;
         y = y / 10;
-
-        //KeyboardControls
-        if( Math.abs( x ) >= Math.abs( this.m.spinning.x ) ) {
-            this.m.spinning.x = x;
-        }
+        if(Math.abs(x)>=Math.abs(this.m.spinning.x)) this.m.spinning.x = x;
 
         this.m.forward.set(
             Math.sin( this.m.rotation.x ),
-//            this.m.velocity.y,
             0,
             Math.cos( this.m.rotation.x )
         );
         this.m.forward.multiplyScalar( y );
-        if (this.m.airborne) this.m.forward.y += this.m.gravity;// Gravity
-//        this.m.forward.y += this.m.gravity;// Gravity
 
-        if( Math.abs( this.m.forward.y ) >= Math.abs( this.m.velocity.y ) ) this.m.velocity.y = this.m.forward.y;
+//        if (this.m.airborne) console.log('airborne');
+
+        if (this.m.airborne) this.m.forward.y += this.m.gravity;// Gravity
+
+        if (!this.m.airborne) this.m.jumpVelocity = 0;
+
+
+//        /////////////////////////////////Jump Logic
+//        if (this.m.jump == true && this.m.airborne == false) {
+//            this.m.position.y += 1;
+//            this.m.jumpDelta = this.m.jumpPower;
+//            this.jumpStep();
+//            this.m.airborne = true;
+//            this.m.jump     = false;
+//        } else if (this.m.airborne) {
+//            this.jumpStep();
+//        }
+//        /////////////////////////////////
+
+        this.m.airborne = true;
+        this.collision(this.m.forward);
+
+        this.m.velocity.y = this.m.forward.y; // if( Math.abs( this.m.forward.y ) >= Math.abs( this.m.velocity.y ) ) this.m.velocity.y = this.m.forward.y;
         if( Math.abs( this.m.forward.x ) >= Math.abs( this.m.velocity.x ) ) this.m.velocity.x = this.m.forward.x;
         if( Math.abs( this.m.forward.z ) >= Math.abs( this.m.velocity.z ) ) this.m.velocity.z = this.m.forward.z;
 
-        if (this.m.jump == true && this.m.airborne == false) {
-            this.m.position.y += 1;
-            this.m.jumpDelta = this.m.jumpPower;
-            this.jumpStep();
-            this.m.airborne = true;
-            this.m.jump     = false;
-        } else if (this.m.airborne) {
-            this.jumpStep();
-        }
-
-        if (!this.m.airborne) this.m.jumpVelocity = 0
-
-//        if (this.m.velocity.y > this.m.gravity) {
-            this.m.velocity.y += this.m.jumpVelocity;
-//        }
-
-        this.collision();
-
         this.m.rotation.add( this.m.spinning );
         this.m.position.add( this.m.velocity );
-//        console.log('this.m.jumpVelocity: ', this.m.jumpVelocity);
-//        console.log('this.m.velocity.y: ', this.m.velocity.y);
-
-//        if ( this.m.velocity.y < 0 ) console.log('falling');
 
         this.m.spinning.multiplyScalar( this.m.damping );
         this.m.velocity.multiplyScalar( this.m.damping );

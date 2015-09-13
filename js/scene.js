@@ -72,9 +72,11 @@ var BasicScene = Class.extend({
         this.debug();
     },
     debug: function () {
-        for (var i = 0; i < this.user.rays.length; i += 1) {
-            var ray = new THREE.ArrowHelper( this.user.rays[i], this.user.mesh.position, this.user.m.rayDistance, 0xffff00 );
-            this.user.mesh.add(ray);
+        for (var key in this.user.rays) {
+            if (this.user.rays.hasOwnProperty(key)) {
+                var ray = new THREE.ArrowHelper( this.user.rays[key], this.user.mesh.position, this.user.m.rayDistance, 0xffff00 );
+                this.user.mesh.add(ray);
+            }
         }
     },
     // Event handlers
