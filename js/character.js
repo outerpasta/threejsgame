@@ -8,7 +8,7 @@ var Character = Class.extend({
 
         // Set and add its body
         this.body = new THREE.Mesh(
-            new THREE.SphereGeometry(32, 32, 32),
+            new THREE.SphereGeometry(50, 32, 32),
             new THREE.MeshLambertMaterial(args)
         );
         this.body.castShadow = true;
@@ -112,7 +112,7 @@ var Character = Class.extend({
         'use strict';
         // invert joystick direction, and modulate speed
         x = (x - (x * 2))/1000;
-        y = y / 2;
+        y = y / 4;
 
         if (y > 0) y *= 0.5; // half speed backwards
 
@@ -125,7 +125,8 @@ var Character = Class.extend({
         );
         this.m.forward.multiplyScalar( y );
 
-        if (this.m.airborne) this.m.forward.y += this.m.gravity;// Gravity
+        if (this.m.airborne) this.m.forward.y += this.m.gravity; // Gravity
+
         this.jump();
         this.collision(this.m.forward);
 
@@ -133,6 +134,11 @@ var Character = Class.extend({
         if( Math.abs( this.m.forward.x ) >= Math.abs( this.m.velocity.x ) ) this.m.velocity.x = this.m.forward.x;
         if( Math.abs( this.m.forward.z ) >= Math.abs( this.m.velocity.z ) ) this.m.velocity.z = this.m.forward.z;
 
+        this.move();
+
+        if (this.mesh.position.y < -800) this.reset();
+    },
+    move: function () {
         this.m.rotation.add( this.m.spinning );
         this.m.position.add( this.m.forward );
 
@@ -141,12 +147,6 @@ var Character = Class.extend({
 
         this.mesh.position.copy( this.m.position );
         this.mesh.rotation.y = this.m.rotation.x;
-
-        if (this.mesh.position.y < -200) {
-            this.reset();
-        }
-    },
-    move: function () {
     },
     jump: function () {
         if (this.m.jump == true && this.m.airborne == false) {

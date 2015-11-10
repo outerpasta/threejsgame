@@ -6,7 +6,7 @@ var BasicScene = Class.extend({
         this.scene = new THREE.Scene();
         // Create the user's character
         this.user = new Character({
-            color: 0x7A43B6
+            color: 0x000099
         });
         this.scene.add(this.user.mesh);
 
@@ -19,7 +19,6 @@ var BasicScene = Class.extend({
             cameraRotation: new THREE.Euler( -0.4, 0, 0 , "XYZ"),
             stiffness: 0.1,
             fixed: false
-
         });
         this.camera.addTarget({
             name: 'birdseye',
@@ -29,7 +28,6 @@ var BasicScene = Class.extend({
             matchRotation: false,
             stiffness: 0.02,
             fixed: false
-
         });
 
 
@@ -57,7 +55,7 @@ var BasicScene = Class.extend({
 
         // Create the "world" : a 3D representation of the place we'll be putting our character in
         this.world = new World({
-            color: 0xF5F5F5
+            color: 0x339966
         });
         this.scene.add(this.world.mesh);
         // Define the size of the renderer
@@ -69,7 +67,7 @@ var BasicScene = Class.extend({
         // Start the events handlers
         this.setControls();
 
-        this.debug();
+//        this.debug();
     },
     debug: function () {
         for (var key in this.user.rays) {
@@ -96,7 +94,7 @@ var BasicScene = Class.extend({
 
         this.button = new VirtualJoystick({
             container	     : document.getElementById('container'),
-            strokeStyle      : 'orange',
+            strokeStyle      : 'red',
             mouseSupport	 : true,
             limitStickTravel : true,
             stickRadius      : 0

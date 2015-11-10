@@ -8,7 +8,7 @@ var World = Class.extend({
         var loader = new THREE.JSONLoader();
         // level 1
         loader.load( "blender/level1.json", function( geometry ) {
-            var mesh = new THREE.Mesh( geometry, new THREE.MeshLambertMaterial({color: 0xFF0000}) );
+            var mesh = new THREE.Mesh( geometry, new THREE.MeshLambertMaterial({color: args.color}) );
             mesh.scale.set( 200, 200, 200 );
             mesh.receiveShadow = true;
             mesh.position.y -= 200;
@@ -18,12 +18,12 @@ var World = Class.extend({
         }.bind(this));
 
         //Ceiling
-        var ceil = new THREE.Mesh(
-                new THREE.BoxGeometry(5000, 1, 5000),
-                new THREE.MeshBasicMaterial({wireframe: true})
-        );
-        ceil.position.y += 500;
-//        this.mesh.add(ceil);
+//        var ceil = new THREE.Mesh(
+//                new THREE.BoxGeometry(5000, 1, 5000),
+//                new THREE.MeshBasicMaterial({wireframe: true})
+//        );
+//        ceil.position.y += 500;
+////        this.mesh.add(ceil);
     },
     getObstacles: function () {
         'use strict';
